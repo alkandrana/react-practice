@@ -26,10 +26,10 @@ function App() {
                 setSessions(data);
                 let ses = data[0];
                 for (let key in formData.current){
-
-                  if (Number.isInteger(Number(key))){
-                    formData.current[key].value = ses[key];
-                    console.log(key);
+                  const prop = formData.current[key].id;
+                  if (Number.isInteger(Number(key)) && prop){
+                    console.log(`${prop}: ${formData.current[key].id.value}`);
+                    // console.log(key);
                   }
                 }
                 // formData.current.date.value = ses.date;
@@ -168,7 +168,7 @@ function App() {
       </section>
 
       <form ref={formData} onSubmit={handleFormData}>
-        <label htmlFor="date">Date</label>
+        <label htmlFor="date" className="text-amber-500">Date</label>
         <input type="date" id="date" name="date" />
         <label htmlFor="startTime">Start Time</label>
         <input type="datetime" id="startTime" name="start" />
