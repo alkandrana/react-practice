@@ -6,7 +6,7 @@ import './App.css'
 
 function App() {
   const formData = useRef(null);
-  const [sessions, setSessions] = useState({});
+  const [sessions, setSessions] = useState([]);
   const [count, setCount] = useState(0)
 
   const handleFormData = (e) => {
@@ -20,22 +20,47 @@ function App() {
     async function getSessions() {
 
       try {
-        await fetch("http://localhost:8081/api/sessions")
-            .then(res => res.json())
-            .then(data => {
-              setSessions(data);
-              console.log(data);
-            });
+        const response = await fetch("http://localhost:8081/api/sessions");
+              if (response.ok) {
+                let data = await response.json();
+                setSessions(data);
+                let ses = data[0];
+                for (let key in formData.current){
+
+                  if (Number.isInteger(Number(key))){
+                    formData.current[key].value = ses[key];
+                    console.log(key);
+                  }
+                }
+                // formData.current.date.value = ses.date;
+                // formData.current.words.value = ses.words;
+                // formData.current.start.value = ses.startTime;
+                // formData.current.stop.value = ses.stopTime;
+                // formData.current.scene.value = ses.sceneCode;
+                console.log(`Session:`);
+                console.log(JSON.stringify(data[0]));
+              } else {
+                console.log(`Error: ${response.status}`);
+              }
       } catch (error) {
         console.log(error)
       }
     }
-    getSessions();
-    console.log(formData);
+    getSessions().then(() => {
+      for (let key in formData.current) {
+        if (Number.isInteger(Number(key)) && formData.current[key].value) {
+          console.log(`${key}: ${formData.current[key].value} ${typeof formData.current[key].value}`);
+        }
+      }
+
+      console.log(formData);
+    });
+
   }, []);
 
   if (sessions.length > 0){
     console.log(`${sessions.length} sessions available.`);
+
   }
   return (
     <>
@@ -145,8 +170,14 @@ function App() {
       <form ref={formData} onSubmit={handleFormData}>
         <label htmlFor="date">Date</label>
         <input type="date" id="date" name="date" />
+        <label htmlFor="startTime">Start Time</label>
+        <input type="datetime" id="startTime" name="start" />
+        <label htmlFor="stopTime">Stop Time</label>
+        <input type="datetime" id="stopTime" name="stop" />
         <label htmlFor="words">Words</label>
         <input type="number" id="words" name="words" />
+        <label htmlFor="sceneCode">Scene ID</label>
+        <input type="text" id="sceneCode" name="scene" />
         <button type="submit">Submit</button>
       </form>
 
