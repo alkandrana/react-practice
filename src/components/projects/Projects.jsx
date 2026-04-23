@@ -20,8 +20,9 @@ export default function Projects() {
         fetchProjects();
     }, []);
     console.log("Projects: ", projects);
-    if (projects.length > 0) {
-        return (
+    return projects.length > 0 ? (
+        <>
+            <Link to="/projects/add" className="text-sm text-blue-700 hover:text-blue-500">Create New</Link>
             <div className="grid grid-cols-3 gap-20 m-3">
                 {
                     projects.map((project) => (
@@ -47,17 +48,15 @@ export default function Projects() {
                     ))
                 }
             </div>
-        )
-    } else {
-        return (
-            <div className="mx-auto">
-                <h3 className="m-5 text-xl font-semibold text-yellow-300 tracking-tight">
-                    No Projects Found.
-                </h3>
-                <Link to="/projects/add"
-                      className="m-5 px-4 py-2 bg-purple-600 rounded-lg text-red-400 hover:bg-purple-400">Create
-                    One</Link>
-            </div>
-        )
-    }
+        </>
+    ) : (
+        <div className="mx-auto">
+            <h3 className="m-5 text-xl font-semibold text-yellow-300 tracking-tight">
+                No Projects Found.
+            </h3>
+            <Link to="/projects/add"
+                  className="m-5 px-4 py-2 bg-purple-600 rounded-lg text-red-400 hover:bg-purple-400">Create
+                One</Link>
+        </div>
+    )
 }

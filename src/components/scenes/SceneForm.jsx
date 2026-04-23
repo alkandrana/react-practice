@@ -2,10 +2,9 @@ import {useEffect, useState} from "react";
 import {Link, useParams} from "react-router-dom";
 import Projects from "../projects/Projects.jsx";
 
-export default function Form() {
-    // const [Project, setProject] = useState({});
+export default function SceneForm() {
     const {sceneId} = useParams();
-    const [Scene, setScene] = useState({});
+    const [Scene, setScene] = useState(null);
     const [Status, setStatus] = useState([]);
     const [projects, setProjects] = useState([]);
 
@@ -48,7 +47,7 @@ export default function Form() {
 
     useEffect(() => {
         async function getStatuses() {
-            const response = await fetch(`http://localhost:8081/api/status`);
+            const response = await fetch(`http://localhost:8081/api/scenes/status`);
             let result = await response.json();
             if (response.ok) {
                 setStatus(result);
@@ -79,8 +78,7 @@ export default function Form() {
     console.log("State object: ", Scene);
     console.log("Status list: ", Status);
     console.log("Projects list: ", projects);
-
-    return (<div className="mx-auto border border-gray-400 w-1/2 p-2 text-amber-500">
+    return Scene && (<div className="mx-auto border border-gray-400 w-1/2 p-2 text-amber-500">
             <h3 className="text-start pb-3 text-pink-600">Scene Update</h3>
             <form onSubmit={handleSubmit}>
                 <div className="flex flex-row mb-1 text-xs">
@@ -103,16 +101,16 @@ export default function Form() {
                 <div className="flex flex-row mb-1 text-xs">
                     <label htmlFor="status" className="basis-1/3">Project: </label>
                     <select name="status" defaultValue={Scene.status}>
-                        <option value="">Select a Status</option>
+                        <option value="">--Select a Status--</option>
                         {Status.map((s) => (
-                            <option key={s} value={s}>{s}</option>
+                            <option key={s} value={s} className="bg-purple-600">{s}</option>
                         ))}
                     </select>
                 </div>
                 <div className="flex flex-row mb-1 text-xs">
                     <label htmlFor="project" className="basis-1/3">Project: </label>
-                    <select name="projectCode" defaultValue={Scene.projectCode}>
-                        <option value="">Select a Project</option>
+                    <select name="projectCode" defaultValue={Scene.project.bookCode}>
+                        <option value="">--Select a Project--</option>
                         {projects.map((p) => (
                             <option key={p.id} value={p.code}>{p.title}</option>
                         ))}

@@ -91,6 +91,8 @@ export default function Project() {
                                         <strong>Status:</strong> {scene.status}
                                     </li>
                                 </ul>
+                                <Link to={`/scenes/${scene.id}/edit`}
+                                      className="text-xs text-blue-600 underline">Edit</Link>
                             </div>
                         )
                     )}
