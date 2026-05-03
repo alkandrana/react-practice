@@ -1,8 +1,10 @@
 import {useEffect, useState} from "react";
-import {Link, useParams} from "react-router-dom";
+import {Link, useParams, useNavigate} from "react-router-dom";
 import Projects from "../projects/Projects.jsx";
+import {BASE_URL} from "../../utils/config.js";
 
 export default function SceneForm() {
+    const navigate = useNavigate();
     const {sceneId} = useParams();
     const [Scene, setScene] = useState(null);
     const [Status, setStatus] = useState([]);
@@ -16,45 +18,55 @@ export default function SceneForm() {
         if (!sceneRecord.code || !sceneRecord.name) {
             console.log(`Code and Name fields cannot be empty.`);
         }
-        console.log("Constructed object to update: ", sceneRecord);
 
-        // submit request
-        console.log("Stringified: ", JSON.stringify(sceneRecord));
-        const response = await fetch(`http://localhost:8081/api/scenes/${sceneId}`, {
-            method: "PATCH",
+        // submit request;
+        let url, method;
+        if (sceneId) {
+            url = `${BASE_URL}/scenes/${sceneId}`;
+            method = "PATCH";
+        } else {
+            url = `${BASE_URL}/scenes`;
+            method = "POST";
+        }
+        const response = await fetch(url, {
+            method: method,
             headers: {"Content-Type": "application/json"},
-            body: JSON.stringify(formData)
+            body: JSON.stringify(sceneRecord)
         });
         let result = await response.json();
         console.log(result);
+
+        if (response.ok) {
+            navigate(`/projects/${sceneRecord.project_id}`)
+        }
     }
 
     useEffect(() => {
         async function getScene() {
-            const response = await fetch(`http://localhost:8081/api/scenes/${sceneId}`);
+            const response = await fetch(`${BASE_URL}/scenes/${sceneId}`);
             let result = await response.json();
             if (response.ok) {
                 setScene(result);
-                console.log("Fetch result: ", result);
             } else {
-                console.log(`Error: ${response.status}`, result);
+                console.log(`Scene Error: ${response.status}`, result);
             }
         }
 
-        getScene()
+        if (sceneId) {
+            getScene();
+        }
 
     }, []);
 
     useEffect(() => {
         async function getStatuses() {
-            const response = await fetch(`http://localhost:8081/api/scenes/status`);
+            const response = await fetch(`${BASE_URL}/scenes/metadata`);
             let result = await response.json();
             if (response.ok) {
-                setStatus(result);
+                setStatus(result.find(f => f.name === "status")?.valueList)
             } else {
-                console.log(`Error: ${response.status}`, result);
+                console.log(`Status Error: ${response.status}`, result);
             }
-            console.log("Fetch result: ", result);
         }
 
         getStatuses();
@@ -62,45 +74,41 @@ export default function SceneForm() {
 
     useEffect(() => {
         async function getProjects() {
-            const response = await fetch(`http://localhost:8081/api/projects`);
+            const response = await fetch(`${BASE_URL}/projects`);
             let result = await response.json();
             if (response.ok) {
                 setProjects(result);
             } else {
-                console.log(`Error: ${response.status}`, result);
+                console.log(`Project List Error: ${response.status}`, result);
             }
-            console.log("Fetch result: ", result);
         }
 
         getProjects();
     }, []);
 
-    console.log("State object: ", Scene);
-    console.log("Status list: ", Status);
-    console.log("Projects list: ", projects);
-    return Scene && (<div className="mx-auto border border-gray-400 w-1/2 p-2 text-amber-500">
+    return Status && (<div className="mx-auto border border-gray-400 w-1/2 p-2 text-amber-500">
             <h3 className="text-start pb-3 text-pink-600">Scene Update</h3>
             <form onSubmit={handleSubmit}>
                 <div className="flex flex-row mb-1 text-xs">
                     <label htmlFor="code" className="basis-1/3 text-amber-500">Scene ID</label>
-                    <input type="text" id="code" name="code" defaultValue={Scene.code} className="basis-2/3"/>
+                    <input type="text" id="code" name="code" defaultValue={Scene?.code} className="basis-2/3"/>
                 </div>
                 <div className="flex flex-row mb-1 text-xs">
                     <label htmlFor="name" className="basis-1/3">Scene Name: </label>
-                    <input type="text" id="name" name="sceneName" defaultValue={Scene.name} className="basis-2/3"/>
+                    <input type="text" id="name" name="sceneName" defaultValue={Scene?.name} className="basis-2/3"/>
                 </div>
                 <div className="flex flex-row mb-1 text-xs">
                     <label htmlFor="sequence" className="basis-1/3">Sequence in Story: </label>
-                    <input type="number" id="sequence" name="sequence" defaultValue={Scene.sequence}
+                    <input type="number" id="sequence" name="sequence" defaultValue={Scene?.sequence}
                            className="basis-2/3"/>
                 </div>
                 <div className="flex flex-row mb-1 text-xs">
                     <label htmlFor="wc" className="basis-1/3">Word Count: </label>
-                    <input type="number" id="wc" name="words" defaultValue={Scene.words} className="basis-2/3"/>
+                    <input type="number" id="wc" name="words" defaultValue={Scene?.words} className="basis-2/3"/>
                 </div>
                 <div className="flex flex-row mb-1 text-xs">
-                    <label htmlFor="status" className="basis-1/3">Project: </label>
-                    <select name="status" defaultValue={Scene.status}>
+                    <label htmlFor="status" className="basis-1/3">Status: </label>
+                    <select name="status" defaultValue={Scene?.status}>
                         <option value="">--Select a Status--</option>
                         {Status.map((s) => (
                             <option key={s} value={s} className="bg-purple-600">{s}</option>
@@ -109,10 +117,10 @@ export default function SceneForm() {
                 </div>
                 <div className="flex flex-row mb-1 text-xs">
                     <label htmlFor="project" className="basis-1/3">Project: </label>
-                    <select name="projectCode" defaultValue={Scene.project.bookCode}>
+                    <select name="project_id" defaultValue={Scene?.project.bookCode}>
                         <option value="">--Select a Project--</option>
                         {projects.map((p) => (
-                            <option key={p.id} value={p.code}>{p.title}</option>
+                            <option key={p.id} value={p.id}>{p.title}</option>
                         ))}
                     </select>
                 </div>

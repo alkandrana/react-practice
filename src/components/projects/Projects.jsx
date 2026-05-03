@@ -1,16 +1,20 @@
 import {useState, useEffect} from 'react';
 import {Link} from "react-router-dom";
+import {BASE_URL} from "../../utils/config.js";
+import Grid from "../ui/Grid.jsx";
+import colors from "./colors.js";
 
 export default function Projects() {
     let [projects, setProjects] = useState([]);
+    let [seriesList, setSeriesList] = useState(null);
 
     useEffect(function () {
         async function fetchProjects() {
             try {
-                const response = await fetch('http://localhost:8081/api/projects');
+                const response = await fetch(`${BASE_URL}/projects`);
                 let data = await response.json();
                 setProjects(data);
-                let sortedData = data.sort((a, b,) => (a.seriesTitle ?? "").localeCompare(b.seriesTitle ?? ""));
+                let sortedData = data.sort((a, b,) => (a.series_title ?? "").localeCompare(b.series_title ?? ""));
                 console.log("Sorted state object: ", sortedData);
             } catch (error) {
                 console.log(error);
@@ -19,32 +23,42 @@ export default function Projects() {
 
         fetchProjects();
     }, []);
-    console.log("Projects: ", projects);
-    return projects.length > 0 ? (
+
+    useEffect(function () {
+        function getSeriesList() {
+            console.log("Projects: ", projects);
+            const seriesList = Object.groupBy(projects, ({series_title}) => series_title);
+            // const titles = new Set(projects.map(project => project.series_title));
+            // const books = [];
+            // for (let v of titles) {
+            //     books.push({
+            //         title: v,
+            //         books: projects.filter(p => p.series_title === v)
+            //     });
+            // }
+            setSeriesList(seriesList);
+            console.log(seriesList);
+        }
+
+        if (projects.length > 0) {
+            getSeriesList();
+        }
+    }, [projects]);
+    if (seriesList) {
+        Object.keys(seriesList).map((series) => {
+            console.log(`Title: ${series}`);
+            console.log("Books: ", seriesList[series].length);
+        })
+        console.log(seriesList);
+    }
+
+    return seriesList ? (
         <>
             <Link to="/projects/add" className="text-sm text-blue-700 hover:text-blue-500">Create New</Link>
-            <div className="grid grid-cols-3 gap-20 m-3">
+            <div className="text-lg text-red-500">
                 {
-                    projects.map((project) => (
-                        <Link to={`/projects/${project.id}`} key={project.id} className="">
-                            <div
-                                className="bg-white dark:bg-gray-800 shadow-xl dark:shadow-gray-700/10 border rounded-md p-2">
-                                <h5 className="text-xl font-semibold text-amber-600 tracking-tight hover:underline">
-                                    {project.title}
-                                </h5>
-                                <ul className="text-left text-sm text-amber-400">
-                                    <li className="">
-                                        <strong>ID:</strong> {project.code}
-                                    </li>
-                                    <li className="">
-                                        <strong>Series:</strong> {project.seriesTitle}
-                                    </li>
-                                    <li className="">
-                                        <strong>Word Count Goal:</strong> {project.goal.toLocaleString()}
-                                    </li>
-                                </ul>
-                            </div>
-                        </Link>
+                    Object.keys(seriesList).map((series, i) => (
+                        <Grid key={i} series={seriesList[series]} color={colors[i]}/>
                     ))
                 }
             </div>

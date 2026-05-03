@@ -27,6 +27,9 @@ root.render(
                         <Route path="add" element={<ProjectForm/>}/>
                     </Route>
                     <Route path="scenes">
+                        <Route path=":projectId">
+                            <Route path="add" element={<SceneForm/>}/>
+                        </Route>
                         <Route path=":sceneId">
                             <Route index element={<Scene/>}/>
                             <Route path="edit" element={<SceneForm/>}/>
